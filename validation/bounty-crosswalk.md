@@ -4,34 +4,34 @@
 
 ### Accurate, up-to-date FHEVM knowledge
 
-- Main agent instructions: [SKILL.md](/home/crack/Documents/zama/SKILL.md)
-- Architecture: [references/01-mental-model.md](/home/crack/Documents/zama/references/01-mental-model.md)
-- Types and operations: [references/02-encrypted-types-and-ops.md](/home/crack/Documents/zama/references/02-encrypted-types-and-ops.md)
-- ACL, proofs, and decryption: [references/03-acl-and-input-proofs.md](/home/crack/Documents/zama/references/03-acl-and-input-proofs.md), [references/04-decryption-patterns.md](/home/crack/Documents/zama/references/04-decryption-patterns.md)
+- Main agent instructions: [SKILL.md](../SKILL.md)
+- Architecture: [references/01-mental-model.md](../references/01-mental-model.md)
+- Types and operations: [references/02-encrypted-types-and-ops.md](../references/02-encrypted-types-and-ops.md)
+- ACL, proofs, and decryption: [references/03-acl-and-input-proofs.md](../references/03-acl-and-input-proofs.md), [references/04-decryption-patterns.md](../references/04-decryption-patterns.md)
 
 ### Full workflow: write, test, deploy, frontend
 
-- Contracts and patterns: [SKILL.md](/home/crack/Documents/zama/SKILL.md)
-- Examples: [examples](/home/crack/Documents/zama/examples)
-- Test/deploy/frontend guide: [references/05-frontend-testing-and-deployment.md](/home/crack/Documents/zama/references/05-frontend-testing-and-deployment.md)
-- Wallet creation, funding guidance, and Sepolia network selection: [SKILL.md](/home/crack/Documents/zama/SKILL.md), [references/05-frontend-testing-and-deployment.md](/home/crack/Documents/zama/references/05-frontend-testing-and-deployment.md)
+- Contracts and patterns: [SKILL.md](../SKILL.md)
+- Examples: [examples](../examples)
+- Test/deploy/frontend guide: [references/05-frontend-testing-and-deployment.md](../references/05-frontend-testing-and-deployment.md)
+- Wallet creation, funding guidance, and Sepolia network selection: [SKILL.md](../SKILL.md), [references/05-frontend-testing-and-deployment.md](../references/05-frontend-testing-and-deployment.md)
 
 ### Correct Solidity and TypeScript/JavaScript examples
 
-- Solidity examples: [examples/01-confidential-voting/ConfidentialVoting.sol](/home/crack/Documents/zama/examples/01-confidential-voting/ConfidentialVoting.sol), [examples/02-confidential-erc7984/ConfidentialToken.sol](/home/crack/Documents/zama/examples/02-confidential-erc7984/ConfidentialToken.sol), [examples/03-async-public-decryption/AsyncDisclosure.sol](/home/crack/Documents/zama/examples/03-async-public-decryption/AsyncDisclosure.sol)
+- Solidity examples: [examples/01-confidential-voting/ConfidentialVoting.sol](../examples/01-confidential-voting/ConfidentialVoting.sol), [examples/02-confidential-erc7984/ConfidentialToken.sol](../examples/02-confidential-erc7984/ConfidentialToken.sol), [examples/03-async-public-decryption/AsyncDisclosure.sol](../examples/03-async-public-decryption/AsyncDisclosure.sol)
 - TypeScript examples: matching `*.test.ts` and `frontend.ts` files in `examples/`
-- Templates: [templates](/home/crack/Documents/zama/templates)
+- Templates: [templates](../templates)
 
 ### Works with at least one major AI coding tool
 
-- Claude Code-compatible format: [SKILL.md](/home/crack/Documents/zama/SKILL.md) with YAML frontmatter
-- Install/run instructions: [README.md](/home/crack/Documents/zama/README.md), [validation/reviewer-runbook.md](/home/crack/Documents/zama/validation/reviewer-runbook.md)
+- Claude Code-compatible format: [SKILL.md](../SKILL.md) with YAML frontmatter
+- Install/run instructions: [README.md](../README.md), [validation/reviewer-runbook.md](./reviewer-runbook.md)
 
 ### Tested and validated
 
-- Benchmark prompts: [validation/benchmark-prompts.md](/home/crack/Documents/zama/validation/benchmark-prompts.md)
-- Executed results: [validation/results.md](/home/crack/Documents/zama/validation/results.md)
-- Reviewer runbook: [validation/reviewer-runbook.md](/home/crack/Documents/zama/validation/reviewer-runbook.md)
+- Benchmark prompts: [validation/benchmark-prompts.md](./benchmark-prompts.md)
+- Executed results: [validation/results.md](./results.md)
+- Reviewer runbook: [validation/reviewer-runbook.md](./reviewer-runbook.md)
 
 ## Topics To Cover
 
