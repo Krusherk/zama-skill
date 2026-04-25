@@ -22,7 +22,7 @@ Most FHEVM failures from coding agents come from fragmentation:
 
 This skill is built to solve that by packaging the full workflow in one coherent bundle.
 
-The main [SKILL.md](/home/crack/Documents/zama/SKILL.md) is intentionally long and self-sufficient. It does not just summarize FHEVM. It instructs an agent how to:
+The main [SKILL.md](./SKILL.md) is intentionally long and self-sufficient. It does not just summarize FHEVM. It instructs an agent how to:
 
 - reason about FHEVM architecture
 - choose the right encrypted types
@@ -80,11 +80,12 @@ It also teaches the agent that normal confidential-contract deployment does not 
 
 ## Repository structure
 
-- [SKILL.md](/home/crack/Documents/zama/SKILL.md): main long-form skill file
-- [references](/home/crack/Documents/zama/references): deep protocol and workflow references
-- [examples](/home/crack/Documents/zama/examples): compile-ready example contracts, tests, and frontend flows
-- [templates](/home/crack/Documents/zama/templates): reusable scaffolds for generated work
-- [validation](/home/crack/Documents/zama/validation): bounty crosswalk, prompts, reviewer runbook, and executed validation notes
+- [SKILL.md](./SKILL.md): main long-form skill file
+- [references](./references): deep protocol and workflow references
+- [examples](./examples): compile-ready example contracts, tests, and frontend flows
+- [templates](./templates): reusable scaffolds for generated work
+- [validation](./validation): bounty crosswalk, prompts, reviewer runbook, and executed validation notes
+- [demo](./demo): script support for the final video demonstration
 
 ## Primary tool compatibility
 
@@ -94,7 +95,7 @@ That makes it directly usable as a major AI coding tool skill, while the content
 
 ## Validation status
 
-Executed validation is recorded in [validation/results.md](/home/crack/Documents/zama/validation/results.md).
+Executed validation is recorded in [validation/results.md](./validation/results.md).
 
 In this environment, the example pack was validated in a temporary workspace derived from the official `fhevm-hardhat-template`, including:
 
@@ -103,14 +104,14 @@ In this environment, the example pack was validated in a temporary workspace der
 - example test execution
 - localhost deployment
 
-The final real-agent recording and any Sepolia deployment proof should be performed using [validation/reviewer-runbook.md](/home/crack/Documents/zama/validation/reviewer-runbook.md).
+The final real-agent recording and any Sepolia deployment proof should be performed using [validation/reviewer-runbook.md](./validation/reviewer-runbook.md).
 
 ## Fast review path
 
 For judges reviewing the submission quickly, the fastest path is:
 
-1. Read [SKILL.md](/home/crack/Documents/zama/SKILL.md)
-2. Check [validation/bounty-crosswalk.md](/home/crack/Documents/zama/validation/bounty-crosswalk.md)
-3. Inspect [examples](/home/crack/Documents/zama/examples)
-4. Review [validation/results.md](/home/crack/Documents/zama/validation/results.md)
-5. Use [validation/reviewer-runbook.md](/home/crack/Documents/zama/validation/reviewer-runbook.md) to reproduce the demo flow
+1. Read [SKILL.md](./SKILL.md)
+2. Check [validation/bounty-crosswalk.md](./validation/bounty-crosswalk.md)
+3. Inspect [examples](./examples)
+4. Review [validation/results.md](./validation/results.md)
+5. Use [validation/reviewer-runbook.md](./validation/reviewer-runbook.md) to reproduce the demo flow
