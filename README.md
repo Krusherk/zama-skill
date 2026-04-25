@@ -85,7 +85,6 @@ It also teaches the agent that normal confidential-contract deployment does not 
 - [examples](/home/crack/Documents/zama/examples): compile-ready example contracts, tests, and frontend flows
 - [templates](/home/crack/Documents/zama/templates): reusable scaffolds for generated work
 - [validation](/home/crack/Documents/zama/validation): bounty crosswalk, prompts, reviewer runbook, and executed validation notes
-- [demo](/home/crack/Documents/zama/demo): script support for the final video demonstration
 
 ## Primary tool compatibility
 
