@@ -103,11 +103,32 @@ Result:
 - Claude Code run: not executed in this environment because Claude Code is not installed here
 - Sepolia deploy and verify: not executed in this environment
 
+## Skills CLI install validation
+
+Date: April 25, 2026
+
+Executed in an isolated temporary home directory:
+
+```bash
+HOME=/tmp/zama-skill-home npx --yes skills add . -g --agent claude-code cursor codex -y --copy
+```
+
+Observed:
+
+- the open `skills` CLI detected the repository root `SKILL.md`
+- it found exactly one skill: `zama-fhevm`
+- installation completed successfully
+- it created a Claude Code install at `~/.claude/skills/zama-fhevm`
+- it created a universal install at `~/.agents/skills/zama-fhevm` for compatible agents such as Cursor and Codex
+
+This confirms that the current repository structure is compatible with `npx skills add ...` installation once the latest version is pushed to GitHub.
+
 ## Validation status summary
 
 - package files created: complete
 - compile validation: complete
 - example test validation: complete
 - localhost deployment validation: complete
+- Skills CLI install validation: complete
 - Sepolia validation: not executed
 - final real-agent recording: not executed here
