@@ -1,0 +1,34 @@
+import { expect } from "chai";
+import { ethers, fhevm } from "hardhat";
+import { FhevmType } from "@fhevm/hardhat-plugin";
+
+describe("ConfidentialApp", function () {
+  let contract: any;
+  let contractAddress: string;
+  let alice: any;
+
+  before(async function () {
+    [, alice] = await ethers.getSigners();
+  });
+
+  beforeEach(async function () {
+    if (!fhevm.isMock) this.skip();
+
+    const factory = await ethers.getContractFactory("ConfidentialApp");
+    contract = await factory.deploy();
+    contractAddress = await contract.getAddress();
+  });
+
+  it("stores a private deposit", async function () {
+    const encrypted = await fhevm
+      .createEncryptedInput(contractAddress, alice.address)
+      .add64(100n)
+      .encrypt();
+
+    await contract.connect(alice).deposit(encrypted.handles[0], encrypted.inputProof);
+
+    const handle = await contract.confidentialBalanceOf(alice.address);
+    const clear = await fhevm.userDecryptEuint(FhevmType.euint64, handle, contractAddress, alice);
+    expect(clear).to.equal(100n);
+  });
+});

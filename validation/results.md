@@ -1,0 +1,113 @@
+# Validation Results
+
+Only executed results belong here.
+
+Environment:
+
+- verification workspace: `/tmp/zama-verify-skill`
+- base template: `zama-ai/fhevm-hardhat-template`
+- added packages for ERC-7984 example validation:
+  - `@openzeppelin/contracts`
+  - `@openzeppelin/confidential-contracts`
+
+## Executed commands
+
+### Dependency install
+
+```bash
+cd /tmp/zama-verify-skill
+npm install
+npm install @openzeppelin/contracts @openzeppelin/confidential-contracts
+```
+
+Result:
+
+- succeeded
+
+### Compile
+
+```bash
+cd /tmp/zama-verify-skill
+npm run compile
+```
+
+Result:
+
+- succeeded
+- generated typings successfully
+- compiled `21` Solidity files successfully
+
+### Example tests
+
+```bash
+cd /tmp/zama-verify-skill
+npx hardhat test test/ConfidentialVoting.test.ts test/AsyncDisclosure.test.ts test/ConfidentialToken.test.ts
+```
+
+Result:
+
+```text
+ConfidentialVoting
+  ✔ stores private votes and finalizes a public result
+  ✔ rejects a second vote from the same address
+
+AsyncDisclosure
+  ✔ runs the full async public-decryption flow and consumes the request
+
+ConfidentialToken
+  ✔ mints privately and transfers confidential balances
+
+4 passing
+```
+
+### Localhost deployment
+
+Executed:
+
+```bash
+cd /tmp/zama-verify-skill
+npx hardhat node
+```
+
+Observed:
+
+- Hardhat node started successfully at `http://127.0.0.1:8545/`
+- the template’s default deploy flow deployed `FHECounter` at `0x5FbDB2315678afecb367f032d93F642f64180aa3`
+
+Executed:
+
+```bash
+cd /tmp/zama-verify-skill
+npx hardhat deploy --network localhost
+```
+
+Result:
+
+- succeeded
+- reused `FHECounter` at `0x5FbDB2315678afecb367f032d93F642f64180aa3`
+
+Executed:
+
+```bash
+cd /tmp/zama-verify-skill
+npx hardhat run --network localhost scripts/deploy-confidential-voting.ts
+```
+
+Result:
+
+- succeeded
+- deployed `ConfidentialVoting` at `0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512`
+
+## What was not executed here
+
+- Claude Code run: not executed in this environment because Claude Code is not installed here
+- Sepolia deploy and verify: not executed in this environment
+
+## Validation status summary
+
+- package files created: complete
+- compile validation: complete
+- example test validation: complete
+- localhost deployment validation: complete
+- Sepolia validation: not executed
+- final real-agent recording: not executed here

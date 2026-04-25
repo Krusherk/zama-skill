@@ -1,0 +1,57 @@
+import { initSDK, createInstance, SepoliaConfig } from "@zama-fhe/relayer-sdk";
+
+type EncryptAndDecryptParams = {
+  contractAddress: string;
+  userAddress: string;
+  signer: any;
+  contract: any;
+};
+
+export async function encryptAndDecrypt({
+  contractAddress,
+  userAddress,
+  signer,
+  contract,
+}: EncryptAndDecryptParams) {
+  await initSDK();
+
+  const instance = await createInstance({
+    ...SepoliaConfig,
+    network: (window as any).ethereum,
+  });
+
+  const input = instance.createEncryptedInput(contractAddress, userAddress);
+  input.add64(100n);
+  const encrypted = await input.encrypt();
+
+  await contract.deposit(encrypted.handles[0], encrypted.inputProof);
+
+  const keypair = instance.generateKeypair();
+  const startTimestamp = Math.floor(Date.now() / 1000).toString();
+  const durationDays = "7";
+  const eip712 = instance.createEIP712(
+    keypair.publicKey,
+    [contractAddress],
+    startTimestamp,
+    durationDays,
+  );
+
+  const signature = await signer.signTypedData(
+    eip712.domain,
+    { UserDecryptRequestVerification: eip712.types.UserDecryptRequestVerification },
+    eip712.message,
+  );
+
+  const balanceHandle = await contract.confidentialBalanceOf(userAddress);
+
+  return instance.userDecrypt(
+    [{ handle: balanceHandle, contractAddress }],
+    keypair.privateKey,
+    keypair.publicKey,
+    signature.replace("0x", ""),
+    [contractAddress],
+    userAddress,
+    startTimestamp,
+    durationDays,
+  );
+}
