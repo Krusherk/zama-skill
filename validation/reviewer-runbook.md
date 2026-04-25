@@ -6,7 +6,7 @@ This runbook is for the final real-agent proof on a machine that has Claude Code
 
 ```bash
 mkdir -p ~/.claude/skills/zama-fhevm
-cp -R /home/crack/Documents/zama/* ~/.claude/skills/zama-fhevm/
+cp -R <repo-root>/* ~/.claude/skills/zama-fhevm/
 ```
 
 ## 2. Open a clean FHEVM workspace
