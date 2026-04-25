@@ -1,72 +1,117 @@
-## Zama FHEVM Skill Pack
+# Zama FHEVM All-In-One Skill
 
-This repository is a production-focused `SKILL.md` bundle for AI coding agents that need to build, test, deploy, and review confidential smart contracts on the Zama Protocol.
+This repository is a submission for Zama's bounty to create production-ready AI coding skills for confidential smart contract development.
 
-Primary target:
+It is designed so that when an AI coding agent is given this skill and a prompt such as:
 
-- Claude Code project or personal skills via `.claude/skills/zama-fhevm/`
+- `Write me a confidential voting contract using FHEVM`
+- `How do I build a confidential ERC-7984 token?`
+- `Add frontend encryption and user decryption to this FHEVM app`
 
-What is in this pack:
+the agent has enough context, patterns, examples, and guardrails to produce correct, working code without interrupting the build to rediscover protocol basics.
 
-- [SKILL.md](/home/crack/Documents/zama/SKILL.md): the main long-form skill file
-- [references/01-mental-model.md](/home/crack/Documents/zama/references/01-mental-model.md): architecture and execution model
-- [references/02-encrypted-types-and-ops.md](/home/crack/Documents/zama/references/02-encrypted-types-and-ops.md): encrypted types, operations, and HCU/gas tradeoffs
-- [references/03-acl-and-input-proofs.md](/home/crack/Documents/zama/references/03-acl-and-input-proofs.md): ACL rules, proofs, caller binding, and AA caveats
-- [references/04-decryption-patterns.md](/home/crack/Documents/zama/references/04-decryption-patterns.md): user and public decryption flows
-- [references/05-frontend-testing-and-deployment.md](/home/crack/Documents/zama/references/05-frontend-testing-and-deployment.md): frontend, test, and deploy guidance
-- [references/06-openzeppelin-erc7984.md](/home/crack/Documents/zama/references/06-openzeppelin-erc7984.md): OpenZeppelin confidential token and wrapper guidance
-- [references/07-anti-patterns-and-security-checklist.md](/home/crack/Documents/zama/references/07-anti-patterns-and-security-checklist.md): mistake-prevention reference
-- [examples/01-confidential-voting](/home/crack/Documents/zama/examples/01-confidential-voting): confidential voting contract, tests, and frontend flow
-- [examples/02-confidential-erc7984](/home/crack/Documents/zama/examples/02-confidential-erc7984): ERC-7984 confidential token, tests, and frontend flow
-- [examples/03-async-public-decryption](/home/crack/Documents/zama/examples/03-async-public-decryption): async public-decryption contract and tests
-- [templates](/home/crack/Documents/zama/templates): scaffold files for new confidential apps
-- [validation](/home/crack/Documents/zama/validation): bounty crosswalk, reviewer runbook, prompts, and execution results
-- [demo](/home/crack/Documents/zama/demo): video script and shot list for the submission video
+## Why this is an all-in-one skill
 
-## Claude Code Install
+Most FHEVM failures from coding agents come from fragmentation:
 
-Copy this folder to:
+- architecture knowledge lives in one place
+- Solidity patterns live in another
+- frontend encryption flows live somewhere else
+- decryption, ACL, and async settlement rules are easy to miss
+- OpenZeppelin ERC-7984 behavior introduces another layer of nuance
 
-```bash
-mkdir -p ~/.claude/skills/zama-fhevm
-cp -R /home/crack/Documents/zama/* ~/.claude/skills/zama-fhevm/
-```
+This skill is built to solve that by packaging the full workflow in one coherent bundle.
 
-Then use it either automatically or explicitly:
+The main [SKILL.md](/home/crack/Documents/zama/SKILL.md) is intentionally long and self-sufficient. It does not just summarize FHEVM. It instructs an agent how to:
 
-```text
-/zama-fhevm Write me a confidential voting contract using FHEVM
-```
+- reason about FHEVM architecture
+- choose the right encrypted types
+- use `FHE` operations correctly
+- handle ACL permissions safely
+- ingest encrypted inputs with proofs
+- implement user and public decryption
+- integrate frontend encryption/decryption flows
+- test in Hardhat mock mode
+- deploy locally and on Sepolia
+- use OpenZeppelin confidential contracts and ERC-7984 patterns
+- avoid common FHEVM-specific mistakes
 
-## Design Goals
+The supporting files make the skill stronger rather than thinner:
 
-- The main skill file is intentionally long so an agent can work without external doc hunting.
-- Supporting files exist because the bounty requires examples, templates, validation material, and clear separation of deep references.
-- The skill defaults to the official FHEVM Hardhat template and current `FHE` APIs.
-- If a user says `fhevmjs`, the skill interprets that as the frontend FHEVM JavaScript SDK layer and follows the repo’s existing SDK or the current official relayer flow.
+- `references/` expands protocol details the agent may need during deeper tasks
+- `examples/` provides concrete Solidity, TypeScript, and frontend patterns
+- `templates/` gives scaffold-ready starting points for new apps
+- `validation/` shows how the skill maps to the bounty requirements and how it was checked
+- `demo/` supports the final reviewer demo and video submission
 
-## Submission Bundle
+## What the skill covers
 
-For the repo you submit, the core bundle should stay in version control:
+This submission covers the full workflow required by the bounty:
 
-- [SKILL.md](/home/crack/Documents/zama/SKILL.md)
-- [references](/home/crack/Documents/zama/references)
-- [examples](/home/crack/Documents/zama/examples)
-- [templates](/home/crack/Documents/zama/templates)
+- FHEVM mental model and offchain coprocessor execution
+- Hardhat template setup
+- encrypted types and operation support
+- ACL patterns, including `FHE.allow`, `FHE.allowTransient`, and `FHE.allowThis`
+- input proofs and caller binding
+- mandatory `FHE.isSenderAllowed(...)` checks for direct ciphertext handles
+- silent failure patterns and overflow-safe design
+- user decryption with EIP-712 signing
+- public decryption with async proof verification
+- frontend integration through the current FHEVM JavaScript SDK flows
+- testing patterns for mock and real-network workflows
+- deployment guidance, wallet creation, and Sepolia network selection
+- OpenZeppelin confidential contracts and ERC-7984
+- anti-pattern prevention and completion checklist
 
-I recommend also keeping these in the repo because they strengthen the submission and make judging easier:
+## Network and deployment assumptions
 
-- [validation](/home/crack/Documents/zama/validation)
-- [demo](/home/crack/Documents/zama/demo)
+As of April 25, 2026, the official Zama Protocol docs say the current real-encryption deployment target is Ethereum Sepolia.
 
-What is usually not stored as a normal repo file:
+This skill therefore teaches agents to:
 
-- the final recorded video asset itself
+- use `hardhat` for fast mock testing
+- use `localhost` for persistent local integration work
+- use `sepolia` for real FHEVM validation and reviewer-facing deployment
+- create or use a dedicated Sepolia deployer wallet
+- require Sepolia ETH for deployment
+- ask the human to fund the wallet when no approved faucet automation exists
 
-The actual video is typically uploaded or linked separately for the submission, while the `demo/` and `validation/` markdown files stay in the repo as reviewer guidance and evidence.
+It also teaches the agent that normal confidential-contract deployment does not require `$ZAMA` tokens.
 
-## Validation Notes
+## Repository structure
 
-Executed validation lives in [validation/results.md](/home/crack/Documents/zama/validation/results.md).
+- [SKILL.md](/home/crack/Documents/zama/SKILL.md): main long-form skill file
+- [references](/home/crack/Documents/zama/references): deep protocol and workflow references
+- [examples](/home/crack/Documents/zama/examples): compile-ready example contracts, tests, and frontend flows
+- [templates](/home/crack/Documents/zama/templates): reusable scaffolds for generated work
+- [validation](/home/crack/Documents/zama/validation): bounty crosswalk, prompts, reviewer runbook, and executed validation notes
+- [demo](/home/crack/Documents/zama/demo): script support for the final video demonstration
 
-The repository does not fabricate Claude Code runs in this environment. The final real-agent demo should be recorded using [validation/reviewer-runbook.md](/home/crack/Documents/zama/validation/reviewer-runbook.md).
+## Primary tool compatibility
+
+This skill is packaged in a Claude Code-compatible `SKILL.md` format with YAML frontmatter.
+
+That makes it directly usable as a major AI coding tool skill, while the content and supporting files are also structured in a way that can be adapted to other agent ecosystems.
+
+## Validation status
+
+Executed validation is recorded in [validation/results.md](/home/crack/Documents/zama/validation/results.md).
+
+In this environment, the example pack was validated in a temporary workspace derived from the official `fhevm-hardhat-template`, including:
+
+- dependency installation
+- contract compilation
+- example test execution
+- localhost deployment
+
+The final real-agent recording and any Sepolia deployment proof should be performed using [validation/reviewer-runbook.md](/home/crack/Documents/zama/validation/reviewer-runbook.md).
+
+## Fast review path
+
+For judges reviewing the submission quickly, the fastest path is:
+
+1. Read [SKILL.md](/home/crack/Documents/zama/SKILL.md)
+2. Check [validation/bounty-crosswalk.md](/home/crack/Documents/zama/validation/bounty-crosswalk.md)
+3. Inspect [examples](/home/crack/Documents/zama/examples)
+4. Review [validation/results.md](/home/crack/Documents/zama/validation/results.md)
+5. Use [validation/reviewer-runbook.md](/home/crack/Documents/zama/validation/reviewer-runbook.md) to reproduce the demo flow
