@@ -1,22 +1,69 @@
 # Reviewer Runbook
 
-This runbook is for the final real-agent proof on a machine that has Claude Code installed.
+This runbook is for the final real-agent proof on a machine that will run Claude Code with this repository installed as a skill.
 
-## 1. Install the skill
+## 1. Install Claude Code
+
+Official installation methods:
+
+```bash
+curl -fsSL https://claude.ai/install.sh | bash
+```
+
+or
+
+```bash
+npm install -g @anthropic-ai/claude-code
+```
+
+Then verify:
+
+```bash
+claude --version
+```
+
+## 2. Clone this repository
+
+```bash
+git clone https://github.com/Krusherk/zama-skill.git
+cd zama-skill
+```
+
+## 3. Install the skill
+
+Fastest cross-agent install:
+
+```bash
+npx skills add Krusherk/zama-skill
+```
+
+Recommended:
+
+```bash
+./scripts/install-claude-skill.sh --personal
+```
+
+Manual fallback:
 
 ```bash
 mkdir -p ~/.claude/skills/zama-fhevm
-cp -R <repo-root>/* ~/.claude/skills/zama-fhevm/
+cp -R ./* ~/.claude/skills/zama-fhevm/
 ```
 
-## 2. Open a clean FHEVM workspace
+Alternative live-update install:
+
+```bash
+./scripts/install-claude-skill.sh --personal --link
+```
+
+## 4. Open a clean FHEVM workspace
 
 Recommended:
 
 - start from `zama-ai/fhevm-hardhat-template`
 - ensure `npm install` has been run
 
-## 3. Invoke the skill
+## 5. Invoke the skill
 
 Use either natural language or explicit invocation:
 
@@ -30,7 +77,7 @@ or
 Write me a confidential ERC-7984 token with OpenZeppelin on FHEVM. Include tests and frontend code.
 ```
 
-## 4. Demo commands to run on camera
+## 6. Demo commands to run on camera
 
 For the generated project:
 
@@ -49,7 +96,7 @@ npx hardhat deploy --network sepolia
 npx hardhat verify --network sepolia <CONTRACT_ADDRESS>
 ```
 
-## 5. Mistake-prevention moment to show
+## 7. Mistake-prevention moment to show
 
 Have the agent explain and then demonstrate at least one of these:
 
@@ -58,7 +105,7 @@ Have the agent explain and then demonstrate at least one of these:
 - why actual transferred amount must be used instead of requested amount
 - why async request state must be deleted before external calls
 
-## 6. Evidence to capture
+## 8. Evidence to capture
 
 - the natural-language prompt
 - the skill loading or explicit invocation
