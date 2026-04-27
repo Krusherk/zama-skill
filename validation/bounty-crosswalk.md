@@ -14,6 +14,7 @@
 - Contracts and patterns: [SKILL.md](../SKILL.md)
 - Examples: [examples](../examples)
 - Test/deploy/frontend guide: [references/05-frontend-testing-and-deployment.md](../references/05-frontend-testing-and-deployment.md)
+- Greenfield frontend visual system and app-shell templates: [references/08-frontend-design-direction.md](../references/08-frontend-design-direction.md), [references/09-html-first-frontend-rule.md](../references/09-html-first-frontend-rule.md), [templates/frontend-fhevm-app-shell.html.tmpl](../templates/frontend-fhevm-app-shell.html.tmpl), [templates/frontend-fhevm-app-shell.tsx.tmpl](../templates/frontend-fhevm-app-shell.tsx.tmpl)
 - Wallet creation, funding guidance, and Sepolia network selection: [SKILL.md](../SKILL.md), [references/05-frontend-testing-and-deployment.md](../references/05-frontend-testing-and-deployment.md)
 
 ### Correct Solidity and TypeScript/JavaScript examples
@@ -42,7 +43,7 @@
 - Input proofs: `SKILL.md`, `references/03-acl-and-input-proofs.md`
 - User decryption: `SKILL.md`, `references/04-decryption-patterns.md`
 - Public decryption: `SKILL.md`, `references/04-decryption-patterns.md`, `examples/03-async-public-decryption`
-- Frontend integration and `fhevmjs` handling: `SKILL.md`, `references/05-frontend-testing-and-deployment.md`, `templates/frontend-encrypt-decrypt.*`
+- Frontend integration and `fhevmjs` handling: `SKILL.md`, `references/05-frontend-testing-and-deployment.md`, `references/08-frontend-design-direction.md`, `references/09-html-first-frontend-rule.md`, `templates/frontend-encrypt-decrypt.*`, `templates/frontend-fhevm-app-shell.html.tmpl`, `templates/frontend-fhevm-app-shell.tsx.tmpl`
 - Testing: `SKILL.md`, `references/05-frontend-testing-and-deployment.md`, `examples/*/*.test.ts`
 - Anti-patterns and mistakes: `SKILL.md`, `references/07-anti-patterns-and-security-checklist.md`
 - OpenZeppelin confidential contracts and ERC-7984: `SKILL.md`, `references/06-openzeppelin-erc7984.md`, `examples/02-confidential-erc7984`
@@ -50,7 +51,7 @@
 ## Judging Criteria
 
 - Accuracy: source-of-truth and up-to-date patterns in `SKILL.md`
-- Completeness: full lifecycle coverage in `SKILL.md`, `references/05-frontend-testing-and-deployment.md`, and `examples/`
+- Completeness: full lifecycle coverage in `SKILL.md`, `references/05-frontend-testing-and-deployment.md`, `references/08-frontend-design-direction.md`, and `examples/`
 - Agent effectiveness: direct recipes in `SKILL.md`, scaffolds in `templates/`, prompts in `validation/benchmark-prompts.md`
 - Code quality: compile-ready examples in `examples/`
 - Structure: main skill plus references/examples/templates/validation/demo folders
