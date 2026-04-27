@@ -123,6 +123,40 @@ Observed:
 
 This confirms that the current repository structure is compatible with `npx skills add ...` installation once the latest version is pushed to GitHub.
 
+## Frontend shell template syntax validation
+
+Date: April 27, 2026
+
+Executed:
+
+```bash
+cp templates/frontend-fhevm-app-shell.tsx.tmpl /tmp/frontend-fhevm-app-shell.tsx
+npx --yes esbuild /tmp/frontend-fhevm-app-shell.tsx --bundle --format=esm --platform=browser --external:react --outfile=/tmp/frontend-fhevm-app-shell.js
+```
+
+Observed:
+
+- succeeded
+- the generated frontend shell template parsed and bundled successfully
+- output bundle written to `/tmp/frontend-fhevm-app-shell.js`
+
+## HTML frontend shell template parse validation
+
+Date: April 27, 2026
+
+Executed:
+
+```bash
+cp templates/frontend-fhevm-app-shell.html.tmpl /tmp/frontend-fhevm-app-shell.html
+npx --yes prettier --parser html /tmp/frontend-fhevm-app-shell.html > /tmp/frontend-fhevm-app-shell.pretty.html
+```
+
+Observed:
+
+- succeeded
+- the generated HTML frontend shell template parsed successfully
+- formatted output written to `/tmp/frontend-fhevm-app-shell.pretty.html`
+
 ## Validation status summary
 
 - package files created: complete
@@ -130,5 +164,7 @@ This confirms that the current repository structure is compatible with `npx skil
 - example test validation: complete
 - localhost deployment validation: complete
 - Skills CLI install validation: complete
+- frontend shell template syntax validation: complete
+- HTML frontend shell template parse validation: complete
 - Sepolia validation: not executed
 - final real-agent recording: not executed here
