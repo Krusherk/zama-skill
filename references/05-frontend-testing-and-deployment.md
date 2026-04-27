@@ -13,9 +13,33 @@ As of April 25, 2026, the official Zama Protocol docs say:
 - If the repo already uses `@zama-fhe/relayer-sdk`, stay consistent.
 - If the repo already uses `@fhevm/sdk`, stay consistent.
 - If the prompt says `fhevmjs`, interpret that as the frontend FHEVM JavaScript SDK layer and use the repo’s existing SDK or the current official relayer flow for greenfield code.
+- For greenfield frontend work, default to plain `html` + `css` + `js` unless the user explicitly asks for React or the repo already uses React.
 - Encrypt for the target contract address and the direct caller address.
 - Batch encrypted inputs when it makes sense and reuse the shared proof.
 - Remember the current aggregate bit-size limit for a batch is constrained; do not assume unbounded packing.
+
+## Greenfield frontend design default
+
+When the repo does not already have a strong visual language, use the shipped bold editorial concept instead of a default generic crypto dashboard.
+
+- visual direction: `references/08-frontend-design-direction.md`
+- html-first rule: `references/09-html-first-frontend-rule.md`
+- default app shell template: `templates/frontend-fhevm-app-shell.html.tmpl`
+- React app shell template: `templates/frontend-fhevm-app-shell.tsx.tmpl`
+- encryption and decryption helper templates:
+  - `templates/frontend-encrypt-decrypt.ts.tmpl`
+  - `templates/frontend-encrypt-decrypt.js.tmpl`
+
+Default UI expectations for a greenfield FHEVM frontend:
+
+- clear wallet connect state
+- explicit network badge for `localhost` or `sepolia`
+- visible contract address binding point
+- dedicated encrypted-input action area
+- dedicated user-decryption action area
+- clear public-decryption or finalization area when relevant
+- mobile-safe layout
+- no unnecessary framework if a static frontend is enough for the task
 
 ## Hardhat template bootstrap
 
@@ -165,6 +189,39 @@ Use this family only when the repo already uses it or the project explicitly sta
 - Do not assert correctness solely from raw handle equality.
 - For public decryption tests, use `fhevm.publicDecrypt(...)` to obtain ABI-encoded clear values plus proof.
 
+## Mandatory local verification
+
+Do not stop at code generation. Before the agent marks work complete, it should execute the strongest local verification path the repo supports.
+
+Preferred order:
+
+1. compile
+2. tests
+3. localhost deployment when contracts changed
+4. frontend build when frontend files changed
+5. lint or typecheck when those scripts exist and are relevant
+6. if the frontend is static `html` + `css` + `js`, use a lightweight syntax or serveability check instead of a framework build
+
+Command selection:
+
+- prefer repo scripts first:
+  - `npm run compile`
+  - `npm run test`
+  - `npm run build`
+  - `npm run lint`
+  - `npm run typecheck`
+- if the repo uses Hardhat directly and does not expose scripts:
+  - `npx hardhat compile`
+  - `npx hardhat test`
+  - `npx hardhat node`
+  - `npx hardhat deploy --network localhost`
+- if the frontend is plain static `html` + `css` + `js`, prefer:
+  - HTML parse/format validation
+  - JS syntax validation
+  - or a lightweight local static server when practical
+
+If a command cannot be executed because of missing secrets, missing dependencies, or environment limitations, the agent must say so explicitly instead of claiming validation happened.
+
 ## What “tested and validated” should mean for this bounty
 
 The agent should be able to:
@@ -175,5 +232,6 @@ The agent should be able to:
 - run the tests
 - deploy to localhost
 - explain the frontend encryption path
+- build the frontend locally when the task includes frontend code and a build path exists
 
 For final reviewer confidence, validate at least one path on Sepolia if credentials are available.
