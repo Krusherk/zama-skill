@@ -21,6 +21,8 @@ Use this skill whenever the task involves Zama Protocol, FHEVM, encrypted Solidi
   - frontend, testing, and deployment: `references/05-frontend-testing-and-deployment.md`
   - OpenZeppelin token/wrapper guidance: `references/06-openzeppelin-erc7984.md`
   - final review pass: `references/07-anti-patterns-and-security-checklist.md`
+  - greenfield frontend visual direction: `references/08-frontend-design-direction.md`
+  - html-first frontend default: `references/09-html-first-frontend-rule.md`
 - When you need concrete starting points instead of prose, use the shipped examples:
   - confidential voting: `examples/01-confidential-voting`
   - confidential ERC-7984 token: `examples/02-confidential-erc7984`
@@ -48,8 +50,14 @@ Use this skill whenever the task involves Zama Protocol, FHEVM, encrypted Solidi
   - If the repo already uses `@zama-fhe/relayer-sdk` or the official docs/template patterns, stay consistent.
   - If the repo already uses `@fhevm/sdk`, stay consistent with that newer SDK.
   - If the prompt says `fhevmjs`, treat it as the frontend encryption/decryption layer in general; do not invent package names or APIs.
+  - If the repo does not already have a strong design system and the user wants UI work, default to the bold editorial yellow-and-ink concept in `references/08-frontend-design-direction.md`.
+  - For greenfield frontend work, default to plain `html` + `css` + `js` for easier local testing unless the user explicitly asks for React or the repo already uses React.
+  - Use `templates/frontend-fhevm-app-shell.html.tmpl` by default for greenfield UI work. Use `templates/frontend-fhevm-app-shell.tsx.tmpl` only when React is explicitly requested or already established in the repo.
+  - If browser-side npm SDK imports require a build tool and the repo does not already use React, prefer a minimal vanilla toolchain over introducing React by default.
+  - Preserve an existing product design system when one already exists; use the bold yellow-and-ink concept only for greenfield frontend work or when the user asks for a more expressive landing/app shell.
 - Start new projects from `zama-ai/fhevm-hardhat-template` unless the repo already has a working FHEVM setup.
 - Prefer OpenZeppelin confidential contracts for confidential fungible tokens and wrappers instead of hand-rolling ERC-7984.
+- Do not mark work complete after code generation alone. Run local verification commands when the environment supports them, and report exactly what was executed.
 
 ## Bootstrap checklist
 
@@ -856,6 +864,33 @@ const [clearBalance] = await client.decrypt({
 - Do not assume decryption is free-form: current docs and SDKs enforce aggregate bit-size limits (2048 bits per request).
 - If the repo already uses Hardhat `hre.fhevm`, mirror that API in tests instead of importing browser SDKs into test code.
 
+### Greenfield frontend design direction
+
+When the user asks for frontend work and the repo does not already impose a mature visual system, default to the shipped bold editorial concept instead of a generic SaaS dashboard.
+
+- Default to `templates/frontend-fhevm-app-shell.html.tmpl` for plain `html` + `css` + `js`.
+- Use `templates/frontend-fhevm-app-shell.tsx.tmpl` only when the user explicitly wants React or the repo already uses React.
+- Use the design rules in `references/08-frontend-design-direction.md` and `references/09-html-first-frontend-rule.md`.
+- Keep the visual language consistent:
+  - warm yellow highlight
+  - dark ink text
+  - cream secondary surfaces
+  - strong rounded borders
+  - offset shadow blocks
+  - large condensed display typography
+  - lighter body copy
+  - a little motion, not constant motion everywhere
+- Translate the concept into FHEVM-specific UI blocks:
+  - wallet connect
+  - current network badge
+  - encrypted input composer
+  - private decryption action
+  - public result or disclosure state
+  - deployment or contract-address status when relevant
+- Avoid generic crypto dark-mode tropes unless the repo already uses them.
+- Keep desktop and mobile behavior intentional. Do not ship desktop-only layouts.
+- For easy local testing, prefer a single static entry page or a very small static asset set when no framework has been requested.
+
 ## Testing patterns
 
 Use the Hardhat template patterns unless the repo already has stronger conventions.
@@ -999,6 +1034,48 @@ npx hardhat test --network sepolia
 - Prefer `hardhat-deploy`-style deploy scripts when the repo already uses the official template shape.
 - If a contract depends on public decryption callbacks, explain in the deploy notes which event or handle the off-chain relayer will use.
 - If a frontend is part of the deliverable, include the contract address binding point the frontend must use during encryption.
+
+## Mandatory local verification before completion
+
+Do not stop after writing code. Before calling the task done, execute the strongest local verification path the repo supports.
+
+### Minimum required verification
+
+1. Run compile for the touched package or project.
+2. Run tests for the touched package or project.
+3. If the task includes contract changes and the repo supports local deployment, run a localhost deployment flow.
+4. If the task includes frontend code and the repo has a frontend build step, run the frontend build.
+5. If the repo has a relevant lint or typecheck command for the touched surface, run it when practical.
+6. If the frontend is plain static `html` + `css` + `js` and there is no build step, run a lightweight syntax or serveability check instead of inventing a bundler-only validation step.
+
+### Command selection rules
+
+- Prefer repo scripts first:
+  - `npm run compile`
+  - `npm run test`
+  - `npm run build`
+  - `npm run lint`
+  - `npm run typecheck`
+- If the repo does not expose scripts but clearly uses Hardhat, run the direct equivalents:
+  - `npx hardhat compile`
+  - `npx hardhat test`
+  - `npx hardhat node`
+  - `npx hardhat deploy --network localhost`
+- If the frontend is plain static `html` + `css` + `js`, prefer lightweight verification such as:
+  - parsing or formatting checks for the HTML/JS files
+  - or a simple local static server if the environment supports it
+- In a monorepo, run commands only in the affected package unless the repo’s conventions require root orchestration.
+- If a command cannot run because of missing secrets, missing dependencies, unsupported environment, or excessive runtime, state that explicitly and do not pretend validation happened.
+
+### Delivery rule
+
+The final response should always include:
+
+- what was changed
+- which local verification commands were run
+- whether localhost deployment was executed
+- whether frontend build verification was executed
+- any remaining blockers, such as missing Sepolia funds or missing local secrets
 
 ## OpenZeppelin confidential contracts and ERC-7984
 
@@ -1321,6 +1398,7 @@ Before calling a contract complete, verify all of the following:
 - `euint256` is used only when its limited operation set is acceptable.
 - Tests exist in mock mode and, for production paths, on Sepolia with real encryption.
 - Frontend encryption uses the intended contract address and direct caller address.
+- Local verification has actually been executed for the changed surfaces: compile, tests, localhost deploy when applicable, and frontend build when applicable.
 
 If any item fails, fix the design before adding more features.
 
@@ -1339,6 +1417,7 @@ Do all of the following unless the repo already imposes stronger requirements:
 7. Ship a Hardhat test that covers encrypted input, private decrypt of a user-readable handle, and public result finalization.
 8. Ship a frontend example for encrypted voting and result publication.
 9. Use `examples/01-confidential-voting` as the structural reference when no better repo-local pattern exists.
+10. If the task also asks for UI, default to `templates/frontend-fhevm-app-shell.html.tmpl` plus `references/08-frontend-design-direction.md`. Use the React shell only if React is requested or already present in the repo. Then run the local verification protocol before finishing.
 
 ### Prompt: "How do I build a confidential ERC-7984 token?"
 
@@ -1352,6 +1431,8 @@ Do all of the following unless the repo already standardizes on a stronger patte
 6. Include tests for confidential mint and confidential transfer.
 7. Include a frontend example for encrypting a transfer amount and privately decrypting a balance.
 8. Use `examples/02-confidential-erc7984` and `references/06-openzeppelin-erc7984.md` as the default reference set.
+9. If a greenfield frontend is requested, apply the shipped bold editorial shell instead of a default generic dashboard.
+10. Default the frontend surface to static `html` + `css` + `js` unless the user explicitly asks for React or the repo already uses it.
 
 ### Prompt: "Add FHEVM frontend integration" or "How does fhevmjs work here?"
 
@@ -1361,6 +1442,9 @@ Do all of the following unless the repo already standardizes on a stronger patte
 4. Bind encryption to the target contract address and direct caller address.
 5. Show input encryption, contract submission, and either user decryption or public decryption depending on the task.
 6. Use `references/05-frontend-testing-and-deployment.md` and the template files in `templates/`.
+7. If the repo does not already have a design system, use `templates/frontend-fhevm-app-shell.html.tmpl` and `references/08-frontend-design-direction.md` by default.
+8. Switch to `templates/frontend-fhevm-app-shell.tsx.tmpl` only when React is explicitly requested or already established in the codebase.
+9. Run the local frontend verification path before finishing. At minimum, run the project build if available; otherwise use a lightweight validation path for static HTML/JS.
 
 ### Prompt: "Deploy this contract for me"
 
@@ -1371,6 +1455,7 @@ Do all of the following unless the repo already standardizes on a stronger patte
 5. Check whether the wallet has Sepolia ETH before attempting deployment.
 6. If the wallet is unfunded and there is no approved automated faucet flow, ask the human to fund it.
 7. Run compile and tests before deployment, then deploy, then report contract address and any verification or frontend-binding steps.
+8. If a frontend is included, ensure the deployed contract address has a documented binding point and that the frontend still builds locally.
 
 ### Prompt: "Review this FHEVM contract"
 
