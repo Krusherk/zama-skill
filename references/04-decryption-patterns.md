@@ -90,8 +90,8 @@ Correct sequence:
 
 1. load request state
 2. validate request exists
-3. delete request state
-4. verify proof
+3. verify proof
+4. delete request state
 5. perform external call or value transfer
 
 The delete-before-call rule prevents:
@@ -99,6 +99,11 @@ The delete-before-call rule prevents:
 - replay of the same request
 - inconsistent reentrancy behavior
 - stale callback state from surviving partial execution paths
+
+Important retry rule:
+
+- if `FHE.checkSignatures(...)` reverts, the request state should still exist so the callback can be retried with a correct proof
+- do not delete request state before proof verification succeeds
 
 ## Replay prevention
 
