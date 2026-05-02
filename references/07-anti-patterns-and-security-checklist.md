@@ -11,12 +11,13 @@ Use this file for reviews, audits, or final contract completion checks.
 5. Arithmetic overflow without encrypted guards
 6. Public decryption without finality delay for economically sensitive values
 7. Arbitrary external calls from privileged contexts
-8. Encrypting inputs for third-party callers instead of direct callers
-9. Transient-storage collision under account abstraction
-10. Missing `FHE.allowThis()` after storing or updating handles
-11. Exposing plaintext in public views instead of returning encrypted handles
-12. Inventing legacy APIs instead of `FHE.fromExternal(...)`
-13. Using encrypted divisors with `div` or `rem`
+8. Untrusted `delegatecall` from an FHE-sensitive context
+9. Encrypting inputs for third-party callers instead of direct callers
+10. Transient-storage collision under account abstraction
+11. Missing `FHE.allowThis()` after storing or updating handles
+12. Exposing plaintext in public views instead of returning encrypted handles
+13. Inventing legacy APIs instead of `FHE.fromExternal(...)`
+14. Using encrypted divisors with `div` or `rem`
 
 ## Review questions
 
@@ -29,7 +30,9 @@ Use this file for reviews, audits, or final contract completion checks.
 - Is arithmetic protected where wraparound would break business logic?
 - Are public decrypt requests final outputs only?
 - Is async state deleted before external interaction?
+- Does async state stay retryable until `FHE.checkSignatures(...)` succeeds?
 - Are public proof handle orders and ABI orders aligned?
+- Is any untrusted `delegatecall` inheriting caller storage or handle permissions?
 - If a token or wrapper is involved, is the actual transferred amount used for settlement logic?
 
 ## Completion gate
