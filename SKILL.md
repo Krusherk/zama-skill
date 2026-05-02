@@ -205,6 +205,35 @@ Approximate HCU trends from current docs:
 - `select`: `ebool/euint8/euint16/euint32/euint64` about 55k, `euint128` about 57k, `eaddress` about 83k, `euint256` about 108k
 - Transaction limits: about `20,000,000` global HCU and `5,000,000` depth per transaction in the current devnet docs
 
+### HCU budgeting rules
+
+- Treat HCU budgeting as part of correctness. A feature that exceeds HCU or depth limits is not production-ready.
+- Batch related encrypted work in one transaction when the full flow still fits inside the current HCU and depth limits. Reuse one proof and one bounded encrypted update path instead of splitting one logical step into many one-op transactions.
+- Prefer scalar rhs overloads whenever possible. `FHE.add(balance, 1)` is materially cheaper than `FHE.add(balance, FHE.asEuint64(1))`, and scalar paths are often close to half the cost of ciphertext-vs-ciphertext equivalents.
+- Avoid nested `FHE.select(...)` trees on wide payloads such as `euint128`, `eaddress`, and especially `euint256`. Compute flags first, keep payload types narrow, and only branch on wide encrypted payloads when there is no simpler design.
+- When a feature proposes many decrypted values or many wide encrypted operations, estimate total bit width and HCU before generating the code.
+
+### Rule: keep payloads narrow, use scalar rhs, and avoid wide nested selects
+
+Wrong:
+
+```solidity
+euint128 bumped = FHE.add(balance128, FHE.asEuint128(1));
+euint128 penalized = FHE.sub(bumped, FHE.asEuint128(1));
+balance128 = FHE.select(flagA, bumped, FHE.select(flagB, penalized, balance128));
+```
+
+Right:
+
+```solidity
+euint64 bumped = FHE.add(balance64, 1);
+euint64 penalized = FHE.sub(balance64, 1);
+euint64 candidate = FHE.select(flagA, bumped, balance64);
+euint64 nextBalance = FHE.select(flagB, penalized, candidate);
+balance64 = nextBalance;
+FHE.allowThis(nextBalance);
+```
+
 ### Type support summary
 
 - `ebool`: `and`, `or`, `xor`, `eq`, `ne`, `not`, `select`, `rand`
@@ -613,11 +642,50 @@ There are two distinct flows:
 - User decryption: off-chain private re-encryption for an authorized user; no on-chain callback
 - Public decryption: on-chain/off-chain/on-chain async flow with `makePubliclyDecryptable` and `checkSignatures`
 
-### Public decryption: canonical two-step flow
+### Public decryption: canonical flow
 
 1. Contract marks final ciphertext(s) publicly decryptable and emits a request event.
 2. Off-chain client/relayer gets clear values and decryption proof.
 3. Contract finalizes by verifying proof with `FHE.checkSignatures`.
+
+### Canonical request -> callback lifecycle
+
+Use a stable request id, store request state explicitly, verify the proof first, then consume the request before any external interaction.
+
+```solidity
+event UnwrapRequested(uint256 indexed requestId, bytes32 indexed handle, address indexed recipient);
+
+uint256 private nextRequestId;
+mapping(uint256 => bytes32) private pendingHandle;
+mapping(uint256 => address) private pendingRecipient;
+
+function requestUnwrap(euint64 burnedAmount) internal returns (uint256 requestId) {
+    requestId = ++nextRequestId;
+
+    bytes32 handle = FHE.toBytes32(burnedAmount);
+    pendingHandle[requestId] = handle;
+    pendingRecipient[requestId] = msg.sender;
+
+    FHE.makePubliclyDecryptable(burnedAmount);
+    emit UnwrapRequested(requestId, handle, msg.sender);
+}
+
+function finalizeUnwrap(uint256 requestId, uint64 clearAmount, bytes calldata proof) external {
+    bytes32 handle = pendingHandle[requestId];
+    address recipient = pendingRecipient[requestId];
+    require(handle != bytes32(0) && recipient != address(0), "invalid request");
+
+    bytes32[] memory handles = new bytes32[](1);
+    handles[0] = handle;
+    FHE.checkSignatures(handles, abi.encode(clearAmount), proof);
+
+    delete pendingHandle[requestId];
+    delete pendingRecipient[requestId];
+
+    (bool ok,) = recipient.call{value: clearAmount}("");
+    require(ok, "send failed");
+}
+```
 
 ### Rule: verify exactly the same ordered handle list and ABI-encoded cleartext sequence that the proof was built for
 
@@ -643,19 +711,23 @@ function finalize(bool clearFoo, uint8 clearBar, bytes calldata proof) external 
 }
 ```
 
-### Rule: consume async state before external calls or value transfers
+### Rule: keep request state retryable until `FHE.checkSignatures(...)` succeeds, then delete it before external calls or value transfers
 
 Wrong:
 
 ```solidity
 function finalizeUnwrap(bytes32 requestId, uint64 clearAmount, bytes calldata proof) external {
-    bytes32[] memory handles = new bytes32[](1);
-    handles[0] = requestId;
-    FHE.checkSignatures(handles, abi.encode(clearAmount), proof);
     address to = receivers[requestId];
+    bytes32 handle = pendingHandle[requestId];
+    delete pendingHandle[requestId];
+    delete receivers[requestId];
+
+    bytes32[] memory handles = new bytes32[](1);
+    handles[0] = handle;
+    FHE.checkSignatures(handles, abi.encode(clearAmount), proof);
+
     (bool ok,) = to.call{value: clearAmount}("");
     require(ok, "send failed");
-    delete receivers[requestId];
 }
 ```
 
@@ -663,18 +735,23 @@ Right:
 
 ```solidity
 function finalizeUnwrap(bytes32 requestId, uint64 clearAmount, bytes calldata proof) external {
+    bytes32 handle = pendingHandle[requestId];
     address to = receivers[requestId];
-    require(to != address(0), "invalid request");
-    delete receivers[requestId];
+    require(handle != bytes32(0) && to != address(0), "invalid request");
 
     bytes32[] memory handles = new bytes32[](1);
-    handles[0] = requestId;
+    handles[0] = handle;
     FHE.checkSignatures(handles, abi.encode(clearAmount), proof);
+
+    delete pendingHandle[requestId];
+    delete receivers[requestId];
 
     (bool ok,) = to.call{value: clearAmount}("");
     require(ok, "send failed");
 }
 ```
+
+If `FHE.checkSignatures(...)` reverts, the request should remain valid for retry with a correct proof. Do not burn request state before proof verification succeeds.
 
 ### Rule: prevent replay by using one-time request records and stable request IDs; do not rely on ciphertext uniqueness unless you have a contract-specific proof that it is unique
 
@@ -863,6 +940,70 @@ const [clearBalance] = await client.decrypt({
 - Reuse the same shared proof for all handles produced in a batch.
 - Do not assume decryption is free-form: current docs and SDKs enforce aggregate bit-size limits (2048 bits per request).
 - If the repo already uses Hardhat `hre.fhevm`, mirror that API in tests instead of importing browser SDKs into test code.
+
+### Rule: never exceed the 2048-bit aggregate decryption limit in one request
+
+Count total decrypted bit width, not just the number of handles. Eight `euint256` handles fit exactly (`8 * 256 = 2048`), but nine do not.
+
+Wrong:
+
+```ts
+const decrypted = await instance.userDecrypt(
+  [
+    { handle: h0, contractAddress },
+    { handle: h1, contractAddress },
+    { handle: h2, contractAddress },
+    { handle: h3, contractAddress },
+    { handle: h4, contractAddress },
+    { handle: h5, contractAddress },
+    { handle: h6, contractAddress },
+    { handle: h7, contractAddress },
+    { handle: h8, contractAddress },
+  ],
+  keypair.privateKey,
+  keypair.publicKey,
+  signature.replace("0x", ""),
+  [contractAddress],
+  userAddress,
+  startTimestamp,
+  durationDays,
+);
+```
+
+Right:
+
+```ts
+const firstBatch = await instance.userDecrypt(
+  [
+    { handle: h0, contractAddress },
+    { handle: h1, contractAddress },
+    { handle: h2, contractAddress },
+    { handle: h3, contractAddress },
+    { handle: h4, contractAddress },
+    { handle: h5, contractAddress },
+    { handle: h6, contractAddress },
+    { handle: h7, contractAddress },
+  ],
+  keypair.privateKey,
+  keypair.publicKey,
+  signature.replace("0x", ""),
+  [contractAddress],
+  userAddress,
+  startTimestamp,
+  durationDays,
+);
+
+const secondBatch = await instance.userDecrypt(
+  [{ handle: h8, contractAddress }],
+  keypair.privateKey,
+  keypair.publicKey,
+  signature.replace("0x", ""),
+  [contractAddress],
+  userAddress,
+  startTimestamp,
+  durationDays,
+);
+```
 
 ### Greenfield frontend design direction
 
@@ -1281,7 +1422,32 @@ function executeApprovedModule(address module, bytes calldata data) external onl
 }
 ```
 
-### 8. Encrypting inputs for third-party callers instead of direct callers
+### 8. Delegatecalling untrusted code from an FHE-sensitive context
+
+Wrong:
+
+```solidity
+function executePlugin(address plugin, bytes calldata data) external onlyOwner {
+    (bool ok,) = plugin.delegatecall(data);
+    require(ok, "delegatecall failed");
+}
+```
+
+Right:
+
+```solidity
+function executeApprovedModule(address module, bytes calldata data) external onlyOwner {
+    require(approvedModules[module], "module not approved");
+    (bool ok,) = module.call(data);
+    require(ok, "call failed");
+}
+```
+
+Delegatecall note:
+
+- A delegatecalled callee runs with the caller's storage and can inherit access to caller-held ciphertext handles and ACL-mediated capabilities. Treat delegatecall as a handle-exposure boundary.
+
+### 9. Encrypting inputs for third-party callers instead of direct callers
 
 Wrong:
 
@@ -1301,7 +1467,7 @@ function forward(IERC7984 token, address from, address to, externalEuint64 encry
 }
 ```
 
-### 9. Transient storage collision under Account Abstraction
+### 10. Transient storage collision under Account Abstraction
 
 Wrong:
 
@@ -1325,7 +1491,7 @@ Account-abstraction note:
 
 - If you are building the wallet or bundler layer, detect `confidentialProtocolId()` and wipe transient storage between FHE-sensitive user operations. There is a library cleanup function (`FHE.cleanTransientStorage()`), but wallet-level cleanup is the more reliable design.
 
-### 10. Missing `FHE.allowThis()` after storing or updating encrypted state
+### 11. Missing `FHE.allowThis()` after storing or updating encrypted state
 
 Wrong:
 
@@ -1341,7 +1507,7 @@ winner = nextWinner;
 FHE.allowThis(nextWinner);
 ```
 
-### 11. Using public view functions to expose plaintext instead of handles
+### 12. Using public view functions to expose plaintext instead of handles
 
 Wrong:
 
@@ -1359,7 +1525,7 @@ function confidentialBalanceOf(address user) external view returns (euint64) {
 }
 ```
 
-### 12. Using encrypted divisors with `div` or `rem`
+### 13. Using encrypted divisors with `div` or `rem`
 
 Wrong:
 
@@ -1387,17 +1553,19 @@ Before calling a contract complete, verify all of the following:
 - Critical arithmetic has encrypted overflow/underflow guards with safe fallback selection.
 - No code branches on encrypted values with `if`, `require`, or `revert`.
 - Public decryption callbacks verify proofs with `FHE.checkSignatures(...)`.
+- Async request state remains retryable until proof verification succeeds, and request records are only consumed after `FHE.checkSignatures(...)` passes.
 - Async request records are one-time use and are deleted before any external call or value transfer.
 - Decryption proof handle order matches ABI cleartext order exactly.
 - Publicly decryptable handles are final outputs only, not intermediate secrets.
 - If the disclosed information is itself valuable, there is a finality delay before disclosure or downstream access.
 - No privileged arbitrary external call can be abused to touch ACL contracts or leak handles.
-- Delegatecall exposure has been considered; a delegatecalled callee can access caller-held handles.
+- No untrusted `delegatecall` can inherit caller storage or caller-held handle permissions.
 - Account-abstraction integrations wipe transient storage between FHE-sensitive user operations.
 - Third-party caller encryption contexts are either avoided or explicitly re-bound safely by the intermediate contract.
 - `euint256` is used only when its limited operation set is acceptable.
 - Tests exist in mock mode and, for production paths, on Sepolia with real encryption.
 - Frontend encryption uses the intended contract address and direct caller address.
+- User/public decryption batches stay within the current 2048-bit per-request limit.
 - Local verification has actually been executed for the changed surfaces: compile, tests, localhost deploy when applicable, and frontend build when applicable.
 
 If any item fails, fix the design before adding more features.
