@@ -17,6 +17,20 @@ Use this file when the task needs protocol architecture, execution semantics, or
 - KMS: threshold key-management service that authorizes decryption and proof generation.
 - Relayer/oracle: offchain services and SDK layers that help clients submit encrypted inputs and request decryptions.
 
+Another way to frame the same stack for agents:
+
+1. Solidity library (`FHE.sol`): what the developer writes.
+2. Host contracts: the on-chain contracts your app interacts with.
+3. Coprocessors: off-chain services that run the FHE computation.
+4. Gateway: the central coordinator for input validation, ACL coordination, ciphertext routing, and KMS-facing decryption orchestration.
+
+Critical rule:
+
+- nothing decrypts on-chain
+- contracts hold handles, not plaintexts
+- coprocessors execute the encrypted computation
+- the Gateway/KMS path controls decryption permissions and proofs
+
 ## Onchain vs offchain execution
 
 The critical idea for an agent:
