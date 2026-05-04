@@ -2,6 +2,14 @@
 
 Use this file when the task involves confidential fungible tokens, operators, wrappers, or ERC-20 bridging.
 
+## Package pin
+
+For new generated projects, pin the current npm release:
+
+```bash
+npm install @openzeppelin/confidential-contracts@0.4.0
+```
+
 ## What ERC-7984 changes
 
 ERC-7984 is the confidential-token analogue of ERC-20:
@@ -62,6 +70,19 @@ Important wrapper facts:
 - wrappers use a conversion `rate()`
 - `wrap(...)` is synchronous
 - `unwrap(...)` is asynchronous and must later be finalized with a decryption proof
+
+## Sepolia deployed addresses
+
+As of May 4, 2026, the official Zama Sepolia addresses page lists:
+
+- Wrappers Registry: `0x2f0750Bbb0A246059d80e94c454586a7F27a128e`
+- `cUSDCMock`: `0x7c5BF43B851c1dff1a4feE8dB225b87f2C223639`
+- `cUSDTMock`: `0x4E7B06D78965594eB5EF5414c357ca21E1554491`
+- `cWETHMock`: `0x46208622DA27d91db4f0393733C8BA082ed83158`
+- `cBRONMock`: `0xaa5612FA27c927a0c7961f5AEFEE5ba3A0F9C891`
+- `cZAMAMock`: `0xf2D628d2598aF4eAF94CB76a437Ff86CA78FfbFB`
+
+The mock wrappers wrap public-mint underlying ERC-20s capped at 1,000,000 tokens per call, which is useful for repeatable test setup.
 
 ## Async unwrap pattern
 
