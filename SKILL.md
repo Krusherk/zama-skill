@@ -61,6 +61,13 @@ Use this skill whenever the task involves Zama Protocol, FHEVM, encrypted Solidi
 
 ## Bootstrap checklist
 
+LICENSE NOTE:
+
+- Zama docs state that Zama libraries are free for development, research, prototyping, and experimentation under BSD 3-Clause Clear.
+- The docs also state that commercial use of Zama open source code can require a commercial patent license.
+- At the same time, the current docs say builders on Zama Protocol itself do not need an extra license.
+- Agents must not give definitive legal advice. For any commercial deployment, tell the user to confirm the applicable license position with Zama and their legal counsel before shipping.
+
 For a fresh Hardhat project, default to:
 
 ```bash
@@ -69,6 +76,12 @@ npx hardhat vars set MNEMONIC
 npx hardhat vars set INFURA_API_KEY
 npm run compile
 npm run test
+```
+
+If the task uses OpenZeppelin confidential contracts or ERC-7984 wrappers, pin the current npm release:
+
+```bash
+npm install @openzeppelin/confidential-contracts@0.4.0
 ```
 
 ### Wallet creation and funding rules
@@ -108,6 +121,12 @@ import {ZamaEthereumConfig} from "@fhevm/solidity/config/ZamaConfig.sol";
 - On-chain contracts do not hold plaintext. They hold ciphertext handles (`bytes32` under the hood).
 - FHE operations are symbolically emitted on-chain and executed off-chain by coprocessors. The blockchain sees handles, not decrypted values.
 - The ACL contract is the on-chain authority for who may use or decrypt each ciphertext handle.
+- The FHEVM stack has four layers agents must understand:
+  1. Solidity library (`FHE.sol`): what you write; it emits symbolic encrypted operations and never performs FHE directly on-chain.
+  2. Host contracts: on-chain contracts that hold ACL state and trigger off-chain encrypted computation.
+  3. Coprocessors: decentralized off-chain services that watch events, execute the FHE computation, and commit resulting ciphertext handles.
+  4. Gateway: the orchestrator that validates encrypted inputs, manages ACL coordination, bridges ciphertexts, and coordinates coprocessors with the KMS.
+- Critical rule: nothing decrypts on-chain. Contracts hold handles, coprocessors execute FHE, and the Gateway/KMS path controls decryption.
 - Secret-dependent failure cannot use ordinary `require`/`revert`, because revealing whether a secret predicate was true leaks information.
 - Public validation may still revert:
   - invalid `FHE.fromExternal(...)` proof
@@ -180,6 +199,39 @@ function increment(externalEuint32 encryptedAmount, bytes calldata inputProof) e
     count = nextCount;
     FHE.allowThis(nextCount);
     FHE.allow(nextCount, msg.sender);
+}
+```
+
+### Rule: initialize lazy encrypted state before operating on it
+
+Uninitialized encrypted storage is effectively a zero handle. Operating on it can produce silent wrong results instead of reverts.
+
+Wrong:
+
+```solidity
+function transfer(address to, euint64 amount) external {
+    require(FHE.isSenderAllowed(amount), "not allowed");
+    euint64 next = FHE.add(balances[to], amount);
+    balances[to] = next;
+    FHE.allowThis(next);
+    FHE.allow(next, to);
+}
+```
+
+Right:
+
+```solidity
+function transfer(address to, euint64 amount) external {
+    require(FHE.isSenderAllowed(amount), "not allowed");
+    if (!FHE.isInitialized(balances[to])) {
+        balances[to] = FHE.asEuint64(0);
+        FHE.allowThis(balances[to]);
+        FHE.allow(balances[to], to);
+    }
+    euint64 next = FHE.add(balances[to], amount);
+    balances[to] = next;
+    FHE.allowThis(next);
+    FHE.allow(next, to);
 }
 ```
 
@@ -358,6 +410,20 @@ bytes32 handle = FHE.toBytes32(value);
 - Shift amounts are taken modulo the lhs bit width.
 - `euint256` is not a drop-in replacement for smaller arithmetic types.
 
+### Rule: use scalar rhs overloads instead of trivially encrypting literals
+
+Wrong:
+
+```solidity
+euint64 result = FHE.add(balance, FHE.asEuint64(100));
+```
+
+Right:
+
+```solidity
+euint64 result = FHE.add(balance, 100);
+```
+
 ## ACL rules
 
 Treat ACL design as part of the contract’s correctness.
@@ -500,6 +566,16 @@ function vote(externalEuint8 encryptedChoice, bytes calldata inputProof) externa
     currentVote = choice;
 }
 ```
+
+### Rule: do not use the discontinued `FHE.requestDecryption()` flow in new code
+
+Current Zama docs describe the public decryption pattern as:
+
+1. `FHE.makePubliclyDecryptable(...)` on-chain
+2. off-chain `publicDecrypt(...)`
+3. on-chain callback or finalize step with `FHE.checkSignatures(...)`
+
+`FHE.requestDecryption()` is listed as discontinued in the current migration guidance. Do not generate new code that depends on it.
 
 Right:
 
@@ -1244,6 +1320,20 @@ contract MyConfidentialToken is ZamaEthereumConfig, ERC7984, Ownable2Step {
 }
 ```
 
+### Package and import pin
+
+- Pin the current npm release for new generated projects:
+
+```bash
+npm install @openzeppelin/confidential-contracts@0.4.0
+```
+
+- Use this exact import path:
+
+```solidity
+import {ERC7984} from "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol";
+```
+
 ### ERC-7984 rules
 
 - ERC-7984 balances and transfer amounts are `euint64`.
@@ -1252,6 +1342,19 @@ contract MyConfidentialToken is ZamaEthereumConfig, ERC7984, Ownable2Step {
 - `requestDiscloseEncryptedAmount` / `discloseEncryptedAmount` are public-decryption helpers, not private user reads.
 - Wrapper contracts cap confidential decimals at 6 and use a conversion `rate()`.
 - `wrap(...)` is synchronous; `unwrap(...)` is async and finalized later with decryption proof.
+
+### Sepolia deployed addresses
+
+As of May 4, 2026, the official Zama Protocol Sepolia addresses page lists these deployed confidential wrappers for test setup:
+
+- Confidential USDC Mock (`cUSDCMock`): `0x7c5BF43B851c1dff1a4feE8dB225b87f2C223639`
+- Confidential USDT Mock (`cUSDTMock`): `0x4E7B06D78965594eB5EF5414c357ca21E1554491`
+- Confidential WETH Mock (`cWETHMock`): `0x46208622DA27d91db4f0393733C8BA082ed83158`
+- Confidential BRON Mock (`cBRONMock`): `0xaa5612FA27c927a0c7961f5AEFEE5ba3A0F9C891`
+- Confidential ZAMA Mock (`cZAMAMock`): `0xf2D628d2598aF4eAF94CB76a437Ff86CA78FfbFB`
+- Wrappers Registry: `0x2f0750Bbb0A246059d80e94c454586a7F27a128e`
+
+These mock wrappers use underlying public-mint ERC-20s with a 1,000,000 token per-call mint limit, which makes them useful for repeatable test setup.
 
 ### Rule: for ERC-7984 to ERC-20 or unwrap flows, follow the two-step async pattern
 
@@ -1525,7 +1628,21 @@ function confidentialBalanceOf(address user) external view returns (euint64) {
 }
 ```
 
-### 13. Using encrypted divisors with `div` or `rem`
+### 13. Using legacy external-input APIs instead of `FHE.fromExternal(...)`
+
+Wrong:
+
+```solidity
+euint32 amount = FHE.asEuint32(encryptedAmount, inputProof);
+```
+
+Right:
+
+```solidity
+euint32 amount = FHE.fromExternal(encryptedAmount, inputProof);
+```
+
+### 14. Using encrypted divisors with `div` or `rem`
 
 Wrong:
 
