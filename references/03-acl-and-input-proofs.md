@@ -21,6 +21,26 @@ Grant only the permissions required by the intended flow:
 - same-tx helper contract: `FHE.allowTransient`
 - cross-tx helper or module: `FHE.allow`, but only when justified
 
+## Initialization rule for encrypted storage
+
+Lazily initialized encrypted storage must be checked before arithmetic or selection logic uses it.
+
+Safe pattern:
+
+```solidity
+if (!FHE.isInitialized(balances[to])) {
+    balances[to] = FHE.asEuint64(0);
+    FHE.allowThis(balances[to]);
+    FHE.allow(balances[to], to);
+}
+```
+
+Why this matters:
+
+- uninitialized encrypted slots behave like zero handles
+- operations on them can produce silent wrong results instead of reverts
+- first-deploy or first-write flows are where agents most often miss this
+
 ## Fresh encrypted inputs vs existing ciphertext handles
 
 This distinction is mandatory.
