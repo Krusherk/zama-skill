@@ -267,9 +267,4 @@ For judges reviewing the submission quickly, the fastest path is:
 4. Review [validation/results.md](./validation/results.md)
 5. Use [validation/reviewer-runbook.md](./validation/reviewer-runbook.md) to reproduce the demo flow
 
-## Sources
-
-- Claude Code setup: https://code.claude.com/docs/en/setup
-- Claude Code skills: https://code.claude.com/docs/en/skills
-- Claude Code best practices: https://code.claude.com/docs/en/best-practices
-- Agent Skills engineering post: https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills
+## NOTE:FRONTEND USES REACT BUT SET TO HTML AS DEFAULT FOR QUICK FRONTEND DEMO PREVIE
