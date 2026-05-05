@@ -1,4 +1,4 @@
-# Zama FHEVM All-In-One Skill
+# Zama FHEVM All-In-One Skill - Read till end.
 
 This repository is a submission for Zama's bounty to create production-ready AI coding skills for confidential smart contract development.
 
