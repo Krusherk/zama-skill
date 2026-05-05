@@ -114,38 +114,6 @@ It also teaches the agent that normal confidential-contract deployment does not 
 - [validation](./validation): bounty crosswalk, prompts, reviewer runbook, and executed validation notes
 - [demo](./demo): script support for the final video demonstration
 
-## Primary tool compatibility
-
-This skill is packaged in a Claude Code-compatible `SKILL.md` format with YAML frontmatter.
-
-That makes it directly usable as a major AI coding tool skill, while the content and supporting files are also structured in a way that can be adapted to other agent ecosystems.
-
-## How Claude Code skills work
-
-Claude Code loads skills from directories that contain a `SKILL.md` entrypoint. According to the official Claude Code skills docs:
-
-- a skill is a directory with `SKILL.md`
-- the YAML frontmatter tells Claude when to use the skill
-- the `name` field becomes the slash command
-- the `description` helps Claude decide when to load it automatically
-- the full `SKILL.md` body is only loaded when the skill is actually used
-- supporting files can live beside `SKILL.md` and be referenced as needed
-
-Claude Code supports multiple skill scopes:
-
-- personal skills in `~/.claude/skills/<skill-name>/SKILL.md`
-- project skills in `.claude/skills/<skill-name>/SKILL.md`
-
-If the same skill name exists in more than one scope, the official docs say higher-priority locations win: enterprise, then personal, then project.
-
-This repository is structured to fit that model directly.
-
-It is also compatible with the open `skills` installer because that CLI searches GitHub repositories for `SKILL.md` files in the repo root and standard skill folders. This repository has a valid root `SKILL.md`, so it can be installed directly with `npx skills add Krusherk/zama-skill`.
-
-## Install from this repository
-
-The official Claude docs support both personal skills in `~/.claude/skills/` and project skills in `.claude/skills/`. This repository is laid out so you can use it directly in either scope.
-
 If you want the easiest cross-agent install, prefer the `skills` CLI:
 
 ```bash
